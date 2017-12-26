@@ -77,6 +77,10 @@ public class Gpollo {
         }
     }
 
+    public void post(String tag) {
+        mBus.onNext(new Event(tag, null));
+    }
+
     public void post(String tag, Object actual) {
         mBus.onNext(new Event(tag, actual));
     }
@@ -92,7 +96,7 @@ public class Gpollo {
             public Boolean call(Event event) {
                 for (String tag : tags) {
                     if (tag.equals(event.getTag())) {
-                        return eventType.isInstance(event.getData());
+                        return eventType.isInstance(event.getData()) || event.getData() == null;
                     }
                 }
                 return false;
@@ -100,7 +104,12 @@ public class Gpollo {
         }).map(new Func1<Event, T>() {
             @Override
             public T call(Event event) {
-                return (T) event.getData();
+                Object data = event.getData();
+                if (data != null) {
+                    return (T) data;
+                } else {
+                    return null;
+                }
             }
         });
     }

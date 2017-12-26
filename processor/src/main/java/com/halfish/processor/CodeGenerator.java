@@ -133,15 +133,20 @@ class CodeGenerator {
      */
     private void getSingleBinderStatement(MethodSpec.Builder builder, GpolloDescriptor gpolloDescriptors) {
         List<? extends VariableElement> parameters = gpolloDescriptors.methodElement.getParameters();
-        if (parameters.size() != 1) return;
-        TypeMirror typeMirror = parameters.get(0).asType();
-        Class<?> eventType = GpollpUtil.parseVariableClass(typeMirror);
+        Class<?> eventType = null;
+        if (parameters.size() > 1) {
+            throw new RuntimeException("Gpollp error : receive event method can only have one parameter");
+        }
+        if (parameters.size() == 1) {
+            TypeMirror typeMirror = parameters.get(0).asType();
+            eventType = GpollpUtil.parseVariableClass(typeMirror);
+        }
         ThreadMode subscribeOn = gpolloDescriptors.subscribeOn;
         ThreadMode observeOn = gpolloDescriptors.observeOn;
         String methodName = gpolloDescriptors.methodElement.getSimpleName().toString();
         String clazzType = gpolloDescriptors.methodElement.getEnclosingElement().asType().toString().replaceAll("<.*>", "");
         builder.beginControlFlow("if (" + clazzType + ".class.isAssignableFrom(" + GENERATE_PARAM + ".getClass()))")
-                .addStatement(GPOLLO_BINDER_NAME + ".add($T.getDefault().toObservable(new String[]{" + GpollpUtil.split(gpolloDescriptors.tags, ",") + "}, $T.class)" + getSubscribeOnMethodCode(subscribeOn) + getObserveOnMethodCode(observeOn) + ".subscribe(new $T<$T>() {" + getOnAction1MethodCode(eventType, clazzType, methodName) + "}));", Gpollo.class, eventType, Action1.class, eventType)
+                .addStatement(GPOLLO_BINDER_NAME + ".add($T.getDefault().toObservable(new String[]{" + GpollpUtil.split(gpolloDescriptors.tags, ",") + "}, $T.class)" + getSubscribeOnMethodCode(subscribeOn) + getObserveOnMethodCode(observeOn) + ".subscribe(new $T<$T>() {" + getOnAction1MethodCode(eventType, clazzType, methodName) + "}));", Gpollo.class, transRxEventType(eventType), Action1.class, transRxEventType(eventType))
                 .endControlFlow();
     }
 
@@ -166,8 +171,8 @@ class CodeGenerator {
         return MethodSpec.methodBuilder("call")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(eventType, ACTION1_CALL_PARAM)
-                .addCode(getCallMethodCode(clazzType, methodName))
+                .addCode(getCallMethodCode(clazzType, methodName, eventType != null))
+                .addParameter(transRxEventType(eventType), ACTION1_CALL_PARAM)
                 .build();
     }
 
@@ -175,9 +180,24 @@ class CodeGenerator {
      * MainActivity subscribe = (com.cw.gpollo.MainActivity) bindObject;
      * subscribe.add(callParam);
      */
-    private CodeBlock getCallMethodCode(String clazzType, String methodName) {
-        return CodeBlock.builder()
-                .addStatement(clazzType + " subscribe = (" + clazzType + ") " + GENERATE_PARAM)
-                .addStatement("subscribe." + methodName + "(" + ACTION1_CALL_PARAM + ")").build();
+    private CodeBlock getCallMethodCode(String clazzType, String methodName, boolean hasParm) {
+        CodeBlock.Builder builder = CodeBlock.builder()
+                .addStatement(clazzType + " subscribe = (" + clazzType + ") " + GENERATE_PARAM);
+        if (hasParm) {
+            builder.addStatement("subscribe." + methodName + "(" + ACTION1_CALL_PARAM + ")");
+        } else {
+            builder.addStatement("subscribe." + methodName + "()");
+        }
+        return builder.build();
+    }
+
+    /**
+     * null -> Object.class
+     */
+    private Class<?> transRxEventType(Class<?> clazz) {
+        if (clazz == null) {
+            return Object.class;
+        }
+        return clazz;
     }
 }
