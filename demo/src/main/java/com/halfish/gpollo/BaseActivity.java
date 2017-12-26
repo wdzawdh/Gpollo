@@ -19,12 +19,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBind = Gpollo.getDefault().bind(this);
+        mBind = Gpollo.bind(this);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Gpollo.getDefault().unBind(mBind);
+        Gpollo.unBind(mBind);
     }
 }

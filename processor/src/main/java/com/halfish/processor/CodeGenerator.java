@@ -145,7 +145,7 @@ class CodeGenerator {
         String methodName = gpolloDescriptors.methodElement.getSimpleName().toString();
         String clazzType = gpolloDescriptors.methodElement.getEnclosingElement().asType().toString().replaceAll("<.*>", "");
         builder.beginControlFlow("if (" + clazzType + ".class.isAssignableFrom(" + GENERATE_PARAM + ".getClass()))")
-                .addStatement(GPOLLO_BINDER_NAME + ".add($T.getDefault().toObservable(new String[]{" + GpollpUtil.split(gpolloDescriptors.tags, ",") + "}, $T.class)" + getSubscribeOnMethodCode(subscribeOn) + getObserveOnMethodCode(observeOn) + ".subscribe(new $T<$T>() {" + getOnAction1MethodCode(typeMirror, clazzType, methodName) + "}));", Gpollo.class, Object.class, Action1.class, Object.class)
+                .addStatement(GPOLLO_BINDER_NAME + ".add($T.toObservable(new String[]{" + GpollpUtil.split(gpolloDescriptors.tags, ",") + "}, $T.class)" + getSubscribeOnMethodCode(subscribeOn) + getObserveOnMethodCode(observeOn) + ".subscribe(new $T<$T>() {" + getOnAction1MethodCode(typeMirror, clazzType, methodName) + "}));", Gpollo.class, Object.class, Action1.class, Object.class)
                 .endControlFlow();
     }
 

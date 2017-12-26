@@ -61,32 +61,32 @@ public class Gpollo {
         return Gpollo.getDefault().mSchedulerProvider;
     }
 
-    public GpolloBinder bind(Object o) {
+    public static GpolloBinder bind(Object o) {
         if (null == o) {
             throw new NullPointerException("object to subscribe must not be null");
         }
-        if (mGenerator == null) {
+        if (Gpollo.getDefault().mGenerator == null) {
             return new GpolloBinderImpl();
         }
-        return mGenerator.generate(o);
+        return Gpollo.getDefault().mGenerator.generate(o);
     }
 
-    public void unBind(GpolloBinder bind) {
+    public static void unBind(GpolloBinder bind) {
         if (bind != null) {
             bind.unbind();
         }
     }
 
-    public void post(String tag) {
-        mBus.onNext(new Event(tag, null));
+    public static void post(String tag) {
+        Gpollo.getDefault().mBus.onNext(new Event(tag, null));
     }
 
-    public void post(String tag, Object actual) {
-        mBus.onNext(new Event(tag, actual));
+    public static void post(String tag, Object actual) {
+        Gpollo.getDefault().mBus.onNext(new Event(tag, actual));
     }
 
-    public <T> rx.Observable<T> toObservable(final String[] tags, final Class<T> eventType) {
-        return mBus.filter(new Func1<Object, Boolean>() {
+    public static <T> rx.Observable<T> toObservable(final String[] tags, final Class<T> eventType) {
+        return Gpollo.getDefault().mBus.filter(new Func1<Object, Boolean>() {
             @Override
             public Boolean call(Object o) {
                 return Event.class.isInstance(o);
