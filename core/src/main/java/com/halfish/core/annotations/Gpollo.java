@@ -72,7 +72,7 @@ public class Gpollo {
     }
 
     public void unBind(GpolloBinder bind) {
-        if (bind != null && bind.isUnbind()) {
+        if (bind != null) {
             bind.unbind();
         }
     }
