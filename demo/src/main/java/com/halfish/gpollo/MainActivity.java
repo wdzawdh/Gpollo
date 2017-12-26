@@ -31,9 +31,9 @@ public class MainActivity extends BaseActivity {
 
     @Receive("event1")
     @ObserveOn(ThreadMode.MAIN)
-    public void onReceive1(String event1) {
+    public void onReceive1(Bundle b) {
         String s = mTvEvents.getText().toString();
-        mTvEvents.setText(s + "\n" + event1 + "\n");
+        mTvEvents.setText(s + "\n" + b + "\n");
     }
 
     @Receive("event2")
