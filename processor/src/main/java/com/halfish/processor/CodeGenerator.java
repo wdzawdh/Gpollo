@@ -72,7 +72,7 @@ class CodeGenerator {
      * GpolloBinderGeneratorImpl.class
      */
     private TypeSpec getGeneratorTypeSpec() {
-        return TypeSpec.classBuilder(GENERATE_CLASS_NAME + "$" + mTag)
+        return TypeSpec.classBuilder(GENERATE_CLASS_NAME + "_" + mTag)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addSuperinterface(GpolloBinderGenerator.class)
                 .addField(getSingleInstanceFileSpec())
@@ -102,7 +102,7 @@ class CodeGenerator {
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.SYNCHRONIZED)
                 .returns(GpolloBinderGenerator.class)
                 .beginControlFlow("if (instance == null)")
-                .addStatement("instance = new " + GENERATE_CLASS_NAME + "$$" + mTag + "()")
+                .addStatement("instance = new " + GENERATE_CLASS_NAME + "_" + mTag + "()")
                 .endControlFlow()
                 .addStatement("return instance")
                 .build();
