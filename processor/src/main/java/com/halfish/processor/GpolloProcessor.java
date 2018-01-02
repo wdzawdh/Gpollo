@@ -24,7 +24,6 @@ import javax.lang.model.element.Element;
 public class GpolloProcessor extends BasicAnnotationProcessor {
 
     public static Map<Element, GpolloDescriptor> sDescriptorMap = new HashMap<>();
-    private boolean mGenerated = false;
     private String mModuleName;
 
     @Override
@@ -42,11 +41,7 @@ public class GpolloProcessor extends BasicAnnotationProcessor {
     @Override
     protected void postRound(RoundEnvironment roundEnv) {
         super.postRound(roundEnv);
-        if (mGenerated) {
-            return;
-        }
         CodeGenerator.create(new ArrayList<>(sDescriptorMap.values()), processingEnv.getFiler(), mModuleName).createJavaFile();
-        mGenerated = true;
     }
 
     @Override
