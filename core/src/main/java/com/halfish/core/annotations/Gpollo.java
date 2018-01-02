@@ -3,8 +3,8 @@ package com.halfish.core.annotations;
 import com.halfish.core.annotations.contrace.GpolloBinder;
 import com.halfish.core.annotations.contrace.GpolloBinderGenerator;
 import com.halfish.core.annotations.entity.Event;
+import com.halfish.core.annotations.entity.GpolloBinderImpl;
 import com.halfish.core.annotations.entity.SchedulerProvider;
-import com.halfish.core.annotations.utils.GpollpUtil;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class Gpollo {
 
     private static volatile Gpollo mInstance;
     private static String[] sModules = new String[]{};
-    private static String sPackageName;
+    private static String sMainModule;
 
     private final Subject<Object, Object> mBus;
     private Map<String, GpolloBinderGenerator> mGeneratorMap = new HashMap<>();
@@ -35,28 +35,16 @@ public class Gpollo {
         for (String model : sModules) {
             generator(model);
         }
-        generator();
+        generator(sMainModule);
     }
 
     @SuppressWarnings("unchecked")
     private void generator(String modelName) {
         try {
-            Class<GpolloBinderGenerator> generatorClass = (Class<GpolloBinderGenerator>) Class.forName("com.halfish.gpollo.generate.GpolloBinderGeneratorImpl_" + GpollpUtil.md5(modelName));
+            Class<GpolloBinderGenerator> generatorClass = (Class<GpolloBinderGenerator>) Class.forName("com.halfish.gpollo.generate.GpolloBinderGeneratorImpl_" + modelName);
             Method method = generatorClass.getMethod("instance");
             GpolloBinderGenerator mGenerator = (GpolloBinderGenerator) method.invoke(null);
-            mGeneratorMap.put(GpollpUtil.md5(modelName), mGenerator);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void generator() {
-        try {
-            Class<GpolloBinderGenerator> generatorClass = (Class<GpolloBinderGenerator>) Class.forName("com.halfish.gpollo.generate.GpolloBinderGeneratorImpl_" + GpollpUtil.md5(sPackageName));
-            Method method = generatorClass.getMethod("instance");
-            GpolloBinderGenerator mGenerator = (GpolloBinderGenerator) method.invoke(null);
-            mGeneratorMap.put(GpollpUtil.md5(sPackageName), mGenerator);
+            mGeneratorMap.put(modelName, mGenerator);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -73,11 +61,11 @@ public class Gpollo {
         return mInstance;
     }
 
-    public static void init(Scheduler scheduler, String packageName, String... modules) {
-        if (packageName == null || packageName.length() == 0) {
-            throw new RuntimeException("packageName must has");
+    public static void init(Scheduler scheduler, String mainModule, String... modules) {
+        if (mainModule == null || mainModule.length() == 0) {
+            throw new RuntimeException("mainModule must has");
         }
-        sPackageName = packageName;
+        sMainModule = mainModule;
         sModules = modules;
         Gpollo.getDefault().mSchedulerProvider = SchedulerProvider.create(scheduler);
     }
@@ -97,15 +85,15 @@ public class Gpollo {
         String packageName = o.getClass().getPackage().getName();
         for (String module : sModules) {
             if (packageName.contains("." + module)) {
-                generator = Gpollo.getDefault().mGeneratorMap.get(GpollpUtil.md5(module));
+                generator = Gpollo.getDefault().mGeneratorMap.get(module);
                 break;
             }
         }
         if (generator == null) {
-            generator = Gpollo.getDefault().mGeneratorMap.get(GpollpUtil.md5(sPackageName));
+            generator = Gpollo.getDefault().mGeneratorMap.get(sMainModule);
         }
         if (generator == null) {
-            throw new RuntimeException("gradle must config arguments = [gModuleName: \"com.halfish.gpollo\"]");
+            return new GpolloBinderImpl();
         }
         return generator.generate(o);
     }

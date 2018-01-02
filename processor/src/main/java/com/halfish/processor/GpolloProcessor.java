@@ -1,12 +1,11 @@
 package com.halfish.processor;
 
-import com.halfish.core.annotations.utils.GpollpUtil;
-import com.halfish.processor.step.ObserveStep;
-import com.halfish.processor.step.ReceiveStep;
-import com.halfish.processor.step.SubscribeStep;
 import com.google.auto.common.BasicAnnotationProcessor;
 import com.google.auto.service.AutoService;
 import com.google.common.collect.ImmutableSet;
+import com.halfish.processor.step.ObserveStep;
+import com.halfish.processor.step.ReceiveStep;
+import com.halfish.processor.step.SubscribeStep;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,13 +25,16 @@ public class GpolloProcessor extends BasicAnnotationProcessor {
 
     public static Map<Element, GpolloDescriptor> sDescriptorMap = new HashMap<>();
     private boolean mGenerated = false;
-    private String packageName;
+    private String mModuleName;
 
     @Override
     protected Iterable<? extends ProcessingStep> initSteps() {
         Map<String, String> options = processingEnv.getOptions();
         if (options != null && !options.isEmpty()) {
-            packageName = options.get("gModuleName");
+            mModuleName = options.get("gModuleName");
+        }
+        if (mModuleName == null) {
+            throw new RuntimeException("gradle must config arguments = [gModuleName: \"XXX\"]");
         }
         return ImmutableSet.of(new ReceiveStep(), new ObserveStep(), new SubscribeStep());
     }
@@ -43,7 +45,7 @@ public class GpolloProcessor extends BasicAnnotationProcessor {
         if (mGenerated) {
             return;
         }
-        CodeGenerator.create(new ArrayList<>(sDescriptorMap.values()), processingEnv.getFiler(), GpollpUtil.md5(packageName)).createJavaFile();
+        CodeGenerator.create(new ArrayList<>(sDescriptorMap.values()), processingEnv.getFiler(), mModuleName).createJavaFile();
         mGenerated = true;
     }
 
