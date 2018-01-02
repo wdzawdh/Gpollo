@@ -32,7 +32,7 @@ public class GpolloProcessor extends BasicAnnotationProcessor {
     protected Iterable<? extends ProcessingStep> initSteps() {
         Map<String, String> options = processingEnv.getOptions();
         if (options != null && !options.isEmpty()) {
-            packageName = options.get("packageName");
+            packageName = options.get("gModuleName");
         }
         return ImmutableSet.of(new ReceiveStep(), new ObserveStep(), new SubscribeStep());
     }

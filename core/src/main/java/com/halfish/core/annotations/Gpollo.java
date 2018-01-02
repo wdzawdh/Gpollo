@@ -3,7 +3,6 @@ package com.halfish.core.annotations;
 import com.halfish.core.annotations.contrace.GpolloBinder;
 import com.halfish.core.annotations.contrace.GpolloBinderGenerator;
 import com.halfish.core.annotations.entity.Event;
-import com.halfish.core.annotations.entity.GpolloBinderImpl;
 import com.halfish.core.annotations.entity.SchedulerProvider;
 import com.halfish.core.annotations.utils.GpollpUtil;
 
@@ -102,11 +101,11 @@ public class Gpollo {
                 break;
             }
         }
-        if (sPackageName.equals(packageName)) {
-            generator = Gpollo.getDefault().mGeneratorMap.get(GpollpUtil.md5(packageName));
+        if (generator == null) {
+            generator = Gpollo.getDefault().mGeneratorMap.get(GpollpUtil.md5(sPackageName));
         }
         if (generator == null) {
-            return new GpolloBinderImpl();
+            throw new RuntimeException("gradle must config arguments = [gModuleName: \"com.halfish.gpollo\"]");
         }
         return generator.generate(o);
     }
