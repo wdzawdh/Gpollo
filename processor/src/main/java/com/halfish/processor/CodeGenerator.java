@@ -5,6 +5,7 @@ import com.halfish.core.annotations.contrace.GpolloBinder;
 import com.halfish.core.annotations.contrace.GpolloBinderGenerator;
 import com.halfish.core.annotations.entity.GpolloBinderImpl;
 import com.halfish.core.annotations.entity.ThreadMode;
+import com.halfish.core.annotations.utils.GpollpUtil;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
@@ -36,14 +37,16 @@ class CodeGenerator {
 
     private List<GpolloDescriptor> mGpolloDescriptors;
     private Filer mFiler;
+    private String mTag;
 
-    private CodeGenerator(ArrayList<GpolloDescriptor> gpolloDescriptors, Filer filer) {
+    private CodeGenerator(ArrayList<GpolloDescriptor> gpolloDescriptors, Filer filer, String tag) {
         this.mGpolloDescriptors = gpolloDescriptors;
         this.mFiler = filer;
+        this.mTag = tag;
     }
 
-    static CodeGenerator create(ArrayList<GpolloDescriptor> gpolloDescriptors, Filer filer) {
-        return new CodeGenerator(gpolloDescriptors, filer);
+    static CodeGenerator create(ArrayList<GpolloDescriptor> gpolloDescriptors, Filer filer, String tag) {
+        return new CodeGenerator(gpolloDescriptors, filer, tag);
     }
 
     void createJavaFile() {
@@ -69,7 +72,7 @@ class CodeGenerator {
      * GpolloBinderGeneratorImpl.class
      */
     private TypeSpec getGeneratorTypeSpec() {
-        return TypeSpec.classBuilder(GENERATE_CLASS_NAME)
+        return TypeSpec.classBuilder(GENERATE_CLASS_NAME + "$" + mTag)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addSuperinterface(GpolloBinderGenerator.class)
                 .addField(getSingleInstanceFileSpec())
@@ -99,7 +102,7 @@ class CodeGenerator {
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.SYNCHRONIZED)
                 .returns(GpolloBinderGenerator.class)
                 .beginControlFlow("if (instance == null)")
-                .addStatement("instance = new " + GENERATE_CLASS_NAME + "()")
+                .addStatement("instance = new " + GENERATE_CLASS_NAME + "$$" + mTag + "()")
                 .endControlFlow()
                 .addStatement("return instance")
                 .build();

@@ -5,8 +5,11 @@ import com.halfish.core.annotations.contrace.GpolloBinderGenerator;
 import com.halfish.core.annotations.entity.Event;
 import com.halfish.core.annotations.entity.GpolloBinderImpl;
 import com.halfish.core.annotations.entity.SchedulerProvider;
+import com.halfish.core.annotations.utils.GpollpUtil;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import rx.Scheduler;
 import rx.functions.Func1;
@@ -21,22 +24,26 @@ import rx.subjects.Subject;
 public class Gpollo {
 
     private static volatile Gpollo mInstance;
+    private static String[] sModules;
 
     private final Subject<Object, Object> mBus;
-    private GpolloBinderGenerator mGenerator;
+    private Map<String, GpolloBinderGenerator> mGeneratorMap = new HashMap<>();
     private SchedulerProvider mSchedulerProvider;
 
     private Gpollo() {
         mBus = new SerializedSubject<>(PublishSubject.create());
-        generator();
+        for (String model : sModules) {
+            generator(model);
+        }
     }
 
     @SuppressWarnings("unchecked")
-    private void generator() {
+    private void generator(String modelName) {
         try {
-            Class<GpolloBinderGenerator> generatorClass = (Class<GpolloBinderGenerator>) Class.forName("com.halfish.gpollo.generate.GpolloBinderGeneratorImpl");
+            Class<GpolloBinderGenerator> generatorClass = (Class<GpolloBinderGenerator>) Class.forName("com.halfish.gpollo.generate.GpolloBinderGeneratorImpl$" + GpollpUtil.md5(modelName));
             Method method = generatorClass.getMethod("instance");
-            mGenerator = (GpolloBinderGenerator) method.invoke(null);
+            GpolloBinderGenerator mGenerator = (GpolloBinderGenerator) method.invoke(null);
+            mGeneratorMap.put(GpollpUtil.md5(modelName), mGenerator);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -53,22 +60,29 @@ public class Gpollo {
         return mInstance;
     }
 
-    public static void init(Scheduler scheduler) {
+    public static void init(Scheduler scheduler, String... modules) {
+        sModules = modules;
         Gpollo.getDefault().mSchedulerProvider = SchedulerProvider.create(scheduler);
     }
 
     public static SchedulerProvider getSchedulerProvider() {
+        if (Gpollo.getDefault().mSchedulerProvider == null) {
+            throw new RuntimeException("Gpollo must be init");
+        }
         return Gpollo.getDefault().mSchedulerProvider;
     }
 
     public static GpolloBinder bind(Object o) {
         if (null == o) {
-            throw new NullPointerException("object to subscribe must not be null");
+            throw new RuntimeException("object to subscribe must not be null");
         }
-        if (Gpollo.getDefault().mGenerator == null) {
+        GpolloBinderGenerator generator;
+        String packageName = o.getClass().getPackage().getName();
+        generator = Gpollo.getDefault().mGeneratorMap.get(GpollpUtil.md5(packageName));
+        if (generator == null) {
             return new GpolloBinderImpl();
         }
-        return Gpollo.getDefault().mGenerator.generate(o);
+        return generator.generate(o);
     }
 
     public static void unBind(GpolloBinder bind) {

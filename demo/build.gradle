@@ -12,6 +12,7 @@ android {
         javaCompileOptions {
             annotationProcessorOptions {
                 includeCompileClasspath true
+                arguments = [packageName: "com.halfish.gpollo"]
             }
         }
     }

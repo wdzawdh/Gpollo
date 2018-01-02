@@ -15,6 +15,6 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Gpollo.init(AndroidSchedulers.mainThread());
+        Gpollo.init(AndroidSchedulers.mainThread(), "com.halfish.gpollo");
     }
 }
