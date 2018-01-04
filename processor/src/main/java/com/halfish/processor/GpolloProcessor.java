@@ -36,7 +36,6 @@ public class GpolloProcessor extends BasicAnnotationProcessor {
         if (mModuleName == null) {
             throw new RuntimeException("gradle must config arguments = [gModuleName: \"XXX\"]");
         }
-        sDescriptorMap.clear();
         return ImmutableSet.of(new ReceiveStep(), new ObserveStep(), new SubscribeStep());
     }
 

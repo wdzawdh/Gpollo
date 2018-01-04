@@ -28,16 +28,14 @@ public class SubscribeStep implements BasicAnnotationProcessor.ProcessingStep {
 
     @Override
     public Set<? extends Element> process(SetMultimap<Class<? extends Annotation>, Element> elementsByAnnotation) {
-        HashSet<Element> elements = new HashSet<>();
         for (Map.Entry<Class<? extends Annotation>, Collection<Element>> classCollectionEntry : elementsByAnnotation.asMap().entrySet()) {
             for (Element element : classCollectionEntry.getValue()) {
-                elements.add(element);
                 if (MoreElements.isAnnotationPresent(element, SubscribeOn.class)) {
                     GpolloDescriptor gpolloDescriptor = GpolloProcessor.sDescriptorMap.get(element);
                     gpolloDescriptor.subscribeOn = MoreElements.asExecutable(element).getAnnotation(SubscribeOn.class).value();
                 }
             }
         }
-        return elements;
+        return new HashSet<>();
     }
 }
