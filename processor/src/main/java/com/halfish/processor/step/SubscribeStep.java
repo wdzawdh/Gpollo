@@ -27,7 +27,7 @@ public class SubscribeStep implements BasicAnnotationProcessor.ProcessingStep {
     }
 
     @Override
-    public Set<? extends Element> process(SetMultimap<Class<? extends Annotation>, Element> elementsByAnnotation) {
+    public Set<Element> process(SetMultimap<Class<? extends Annotation>, Element> elementsByAnnotation) {
         for (Map.Entry<Class<? extends Annotation>, Collection<Element>> classCollectionEntry : elementsByAnnotation.asMap().entrySet()) {
             for (Element element : classCollectionEntry.getValue()) {
                 if (MoreElements.isAnnotationPresent(element, SubscribeOn.class)) {
