@@ -1,12 +1,11 @@
 package com.halfish.processor.step;
 
-import com.halfish.core.annotations.annotations.Receive;
-import com.halfish.processor.GpolloDescriptor;
-import com.halfish.processor.GpolloProcessor;
 import com.google.auto.common.BasicAnnotationProcessor;
 import com.google.auto.common.MoreElements;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
+import com.halfish.core.annotations.annotations.Receive;
+import com.halfish.processor.GpolloDescriptor;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -24,6 +23,12 @@ import javax.lang.model.element.ExecutableElement;
  */
 public class ReceiveStep implements BasicAnnotationProcessor.ProcessingStep {
 
+    private Map<Element, GpolloDescriptor> mDescriptorMap;
+
+    public ReceiveStep(Map<Element, GpolloDescriptor> descriptorMap) {
+        this.mDescriptorMap = descriptorMap;
+    }
+
     @Override
     public Set<? extends Class<? extends Annotation>> annotations() {
         return ImmutableSet.of(Receive.class);
@@ -37,7 +42,7 @@ public class ReceiveStep implements BasicAnnotationProcessor.ProcessingStep {
                 ExecutableElement executableElement = MoreElements.asExecutable(element);
                 Receive annotation = executableElement.getAnnotation(Receive.class);
                 descriptor.tags = Arrays.asList(annotation.value());
-                GpolloProcessor.sDescriptorMap.put(element, descriptor);
+                mDescriptorMap.put(element, descriptor);
             }
         }
         return new HashSet<>();

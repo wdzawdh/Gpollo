@@ -23,7 +23,7 @@ import javax.lang.model.element.Element;
 @AutoService(Processor.class)
 public class GpolloProcessor extends BasicAnnotationProcessor {
 
-    public static Map<Element, GpolloDescriptor> sDescriptorMap = new HashMap<>();
+    private Map<Element, GpolloDescriptor> mDescriptorMap = new HashMap<>();
     private boolean mGenerated = false;
     private String mModuleName;
 
@@ -36,15 +36,15 @@ public class GpolloProcessor extends BasicAnnotationProcessor {
         if (mModuleName == null) {
             throw new RuntimeException("gradle must config arguments = [gModuleName: \"XXX\"]");
         }
-        return ImmutableSet.of(new ReceiveStep(), new ObserveStep(), new SubscribeStep());
+        return ImmutableSet.of(new ReceiveStep(mDescriptorMap), new ObserveStep(mDescriptorMap), new SubscribeStep(mDescriptorMap));
     }
 
     @Override
     protected void postRound(RoundEnvironment roundEnv) {
-        if (mGenerated && sDescriptorMap.isEmpty()) {
+        if (mGenerated && mDescriptorMap.isEmpty()) {
             return;
         }
-        CodeGenerator.create(new ArrayList<>(sDescriptorMap.values()), processingEnv.getFiler(), mModuleName).createJavaFile();
+        CodeGenerator.create(new ArrayList<>(mDescriptorMap.values()), processingEnv.getFiler(), mModuleName).createJavaFile();
         mGenerated = true;
     }
 
