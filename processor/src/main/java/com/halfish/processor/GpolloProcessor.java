@@ -41,7 +41,7 @@ public class GpolloProcessor extends BasicAnnotationProcessor {
 
     @Override
     protected void postRound(RoundEnvironment roundEnv) {
-        if (mGenerated) {
+        if (mGenerated || mDescriptorMap.isEmpty()) {
             return;
         }
         CodeGenerator.create(new ArrayList<>(mDescriptorMap.values()), processingEnv.getFiler(), mModuleName).createJavaFile();
