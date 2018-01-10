@@ -62,7 +62,7 @@ public class GpolloProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        if (set == null || set.isEmpty()) {
+        if (set == null || set.isEmpty() || roundEnvironment.processingOver()) {
             return true;
         }
         // 遍历所有被注解了@Receive的元素

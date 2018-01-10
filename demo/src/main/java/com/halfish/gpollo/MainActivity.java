@@ -32,6 +32,7 @@ public class MainActivity extends BaseActivity {
     @Receive("event1")
     @ObserveOn(ThreadMode.MAIN)
     public void onReceive1() {
+
         String s = mTvEvents.getText().toString();
         mTvEvents.setText(s + "\nonReceive1\n");
     }
