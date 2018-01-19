@@ -25,7 +25,7 @@ public class SecondActivity extends BaseActivity {
                 ArrayList<String> event2 = new ArrayList<>();
                 event2.add("this is event2");
 
-                Gpollo.post("event1");
+                Gpollo.post("event1", null);
                 Gpollo.post("event2", event2);
             }
         });

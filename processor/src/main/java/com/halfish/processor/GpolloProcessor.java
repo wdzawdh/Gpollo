@@ -74,6 +74,7 @@ public class GpolloProcessor extends AbstractProcessor {
             ExecutableElement executableElement = MoreElements.asExecutable(annotatedElement);
             Receive annotation = executableElement.getAnnotation(Receive.class);
             descriptor.tags = Arrays.asList(annotation.value());
+            descriptor.canReceiveNull = annotation.canNull();
             mDescriptorMap.put(annotatedElement, descriptor);
         }
         // 遍历所有被注解了@ObserveOn的元素

@@ -29,12 +29,11 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    @Receive("event1")
+    @Receive(value = "event1", canNull = true)
     @ObserveOn(ThreadMode.MAIN)
-    public void onReceive1() {
-
+    public void onReceive1(Integer i) {
         String s = mTvEvents.getText().toString();
-        mTvEvents.setText(s + "\nonReceive1\n");
+        mTvEvents.setText(s + "\nonReceive1(" + i + ")\n");
     }
 
     @Receive("event2")

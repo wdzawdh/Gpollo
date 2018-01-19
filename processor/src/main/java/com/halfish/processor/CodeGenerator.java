@@ -143,12 +143,13 @@ class CodeGenerator {
         if (parameters.size() == 1) {
             typeMirror = parameters.get(0).asType();
         }
+        boolean canReceiveNull = gpolloDescriptors.canReceiveNull;
         ThreadMode subscribeOn = gpolloDescriptors.subscribeOn;
         ThreadMode observeOn = gpolloDescriptors.observeOn;
         String methodName = gpolloDescriptors.methodElement.getSimpleName().toString();
         String clazzType = gpolloDescriptors.methodElement.getEnclosingElement().asType().toString().replaceAll("<.*>", "");
         builder.beginControlFlow("if (" + clazzType + ".class.isAssignableFrom(" + GENERATE_PARAM + ".getClass()))")
-                .addStatement(GPOLLO_BINDER_NAME + ".add($T.toObservable(new String[]{" + GpollpUtil.split(gpolloDescriptors.tags, ",") + "}, $T.class)" + getSubscribeOnMethodCode(subscribeOn) + getObserveOnMethodCode(observeOn) + ".subscribe(new $T<$T>() {" + getOnAction1MethodCode(typeMirror, clazzType, methodName) + "}))", Gpollo.class, Object.class, Action1.class, Object.class)
+                .addStatement(GPOLLO_BINDER_NAME + ".add($T.toObservable(new String[]{" + GpollpUtil.split(gpolloDescriptors.tags, ",") + "}, $T.class)" + getSubscribeOnMethodCode(subscribeOn) + getObserveOnMethodCode(observeOn) + ".subscribe(new $T<$T>() {" + getOnAction1MethodCode(typeMirror, clazzType, methodName, canReceiveNull) + "}))", Gpollo.class, Object.class, Action1.class, Object.class)
                 .endControlFlow();
     }
 
@@ -169,11 +170,11 @@ class CodeGenerator {
     /**
      * public void call(java.util.ArrayList callParam) {...}
      */
-    private MethodSpec getOnAction1MethodCode(TypeMirror typeMirror, String clazzType, String methodName) {
+    private MethodSpec getOnAction1MethodCode(TypeMirror typeMirror, String clazzType, String methodName, boolean canReceiveNull) {
         return MethodSpec.methodBuilder("call")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addCode(getCallMethodCode(typeMirror, clazzType, methodName))
+                .addCode(getCallMethodCode(typeMirror, clazzType, methodName, canReceiveNull))
                 .addParameter(Object.class, ACTION1_CALL_PARAM)
                 .build();
     }
@@ -182,13 +183,15 @@ class CodeGenerator {
      * MainActivity subscribe = (com.cw.gpollo.MainActivity) bindObject;
      * subscribe.add(callParam);
      */
-    private CodeBlock getCallMethodCode(TypeMirror typeMirror, String clazzType, String methodName) {
+    private CodeBlock getCallMethodCode(TypeMirror typeMirror, String clazzType, String methodName, boolean canReceiveNull) {
         CodeBlock.Builder builder = CodeBlock.builder().addStatement(clazzType + " subscribe = (" + clazzType + ") " + GENERATE_PARAM);
         if (typeMirror != null) {
-            builder.beginControlFlow("if(" + ACTION1_CALL_PARAM + " == null)")
-                    .addStatement("subscribe." + methodName + "(null)")
-                    .endControlFlow()
-                    .beginControlFlow("if(" + ACTION1_CALL_PARAM + " instanceof " + GpollpUtil.parseVariableType(typeMirror) + ")")
+            if (canReceiveNull) {
+                builder = builder.beginControlFlow("if(" + ACTION1_CALL_PARAM + " == null)")
+                        .addStatement("subscribe." + methodName + "(null)")
+                        .endControlFlow();
+            }
+            builder = builder.beginControlFlow("if(" + ACTION1_CALL_PARAM + " instanceof " + GpollpUtil.parseVariableType(typeMirror) + ")")
                     .addStatement("subscribe." + methodName + "(($T)" + ACTION1_CALL_PARAM + ")", typeMirror)
                     .endControlFlow();
         } else {

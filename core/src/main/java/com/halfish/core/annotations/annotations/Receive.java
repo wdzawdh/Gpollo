@@ -14,4 +14,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)//限定注解的生命周期
 public @interface Receive {
     String[] value();
+
+    boolean canNull() default false;
 }

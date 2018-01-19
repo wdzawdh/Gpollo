@@ -11,14 +11,15 @@ import javax.lang.model.element.ExecutableElement;
  * @author cw
  * @date 2017/12/18
  */
-public class GpolloDescriptor {
+class GpolloDescriptor {
 
-    public List<String> tags = new ArrayList<>();
-    public ThreadMode observeOn = ThreadMode.MAIN;
-    public ThreadMode subscribeOn = ThreadMode.IO;
-    public ExecutableElement methodElement;
+    List<String> tags = new ArrayList<>();
+    boolean canReceiveNull = false;
+    ThreadMode observeOn = ThreadMode.MAIN;
+    ThreadMode subscribeOn = ThreadMode.IO;
+    ExecutableElement methodElement;
 
-    public GpolloDescriptor(ExecutableElement element) {
+    GpolloDescriptor(ExecutableElement element) {
         methodElement = element;
     }
 }
