@@ -16,7 +16,7 @@ class GpolloDescriptor {
     List<String> tags = new ArrayList<>();
     boolean canReceiveNull = false;
     ThreadMode observeOn = ThreadMode.MAIN;
-    ThreadMode subscribeOn = ThreadMode.IO;
+    ThreadMode subscribeOn = ThreadMode.MAIN;
     ExecutableElement methodElement;
 
     GpolloDescriptor(ExecutableElement element) {
