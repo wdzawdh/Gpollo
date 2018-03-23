@@ -3,6 +3,7 @@ package com.halfish.processor;
 import com.halfish.core.annotations.Gpollo;
 import com.halfish.core.annotations.contrace.GpolloBinder;
 import com.halfish.core.annotations.contrace.GpolloBinderGenerator;
+import com.halfish.core.annotations.entity.BackpressureMode;
 import com.halfish.core.annotations.entity.GpolloBinderImpl;
 import com.halfish.core.annotations.entity.ThreadMode;
 import com.halfish.core.annotations.utils.GpollpUtil;
@@ -146,11 +147,25 @@ class CodeGenerator {
         boolean canReceiveNull = gpolloDescriptors.canReceiveNull;
         ThreadMode subscribeOn = gpolloDescriptors.subscribeOn;
         ThreadMode observeOn = gpolloDescriptors.observeOn;
+        BackpressureMode backpressure = gpolloDescriptors.backpressure;
         String methodName = gpolloDescriptors.methodElement.getSimpleName().toString();
         String clazzType = gpolloDescriptors.methodElement.getEnclosingElement().asType().toString().replaceAll("<.*>", "");
         builder.beginControlFlow("if (" + clazzType + ".class.isAssignableFrom(" + GENERATE_PARAM + ".getClass()))")
-                .addStatement(GPOLLO_BINDER_NAME + ".add($T.toObservable(new String[]{" + GpollpUtil.split(gpolloDescriptors.tags, ",") + "}, $T.class)" + getSubscribeOnMethodCode(subscribeOn) + getObserveOnMethodCode(observeOn) + ".subscribe(new $T<$T>() {" + getOnAction1MethodCode(typeMirror, clazzType, methodName, canReceiveNull) + "}))", Gpollo.class, Object.class, Action1.class, Object.class)
+                .addStatement(GPOLLO_BINDER_NAME + ".add($T.toObservable(new String[]{" + GpollpUtil.split(gpolloDescriptors.tags, ",") + "}, $T.class)" + getBackpressureMethodCode(backpressure) + getSubscribeOnMethodCode(subscribeOn) + getObserveOnMethodCode(observeOn) + ".subscribe(new $T<$T>() {" + getOnAction1MethodCode(typeMirror, clazzType, methodName, canReceiveNull) + "}))", Gpollo.class, Object.class, Action1.class, Object.class)
                 .endControlFlow();
+    }
+
+    /**
+     * .onBackpressurebuffer()
+     */
+    private String getBackpressureMethodCode(BackpressureMode backpressureMode) {
+        switch (backpressureMode) {
+            case BUFFER:
+                return ".onBackpressureBuffer()";
+            case DROP:
+                return ".onBackpressureDrop()";
+        }
+        return "";
     }
 
     /**

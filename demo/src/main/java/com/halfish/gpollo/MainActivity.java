@@ -5,9 +5,11 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import com.halfish.core.annotations.annotations.Backpressure;
 import com.halfish.core.annotations.annotations.ObserveOn;
 import com.halfish.core.annotations.annotations.Receive;
 import com.halfish.core.annotations.annotations.SubscribeOn;
+import com.halfish.core.annotations.entity.BackpressureMode;
 import com.halfish.core.annotations.entity.ThreadMode;
 
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ public class MainActivity extends BaseActivity {
     @Receive(value = "event1", canNull = true)
     @ObserveOn(ThreadMode.MAIN)
     @SubscribeOn(ThreadMode.MAIN)
+    @Backpressure(BackpressureMode.DROP)
     public void onReceive1(Integer i) {
         String s = mTvEvents.getText().toString();
         mTvEvents.setText(s + "\nonReceive1(" + i + ")\n");

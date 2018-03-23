@@ -2,6 +2,7 @@ package com.halfish.processor;
 
 import com.google.auto.common.MoreElements;
 import com.google.auto.service.AutoService;
+import com.halfish.core.annotations.annotations.Backpressure;
 import com.halfish.core.annotations.annotations.ObserveOn;
 import com.halfish.core.annotations.annotations.Receive;
 import com.halfish.core.annotations.annotations.SubscribeOn;
@@ -57,6 +58,7 @@ public class GpolloProcessor extends AbstractProcessor {
         annotations.add(Receive.class.getCanonicalName());
         annotations.add(ObserveOn.class.getCanonicalName());
         annotations.add(SubscribeOn.class.getCanonicalName());
+        annotations.add(Backpressure.class.getCanonicalName());
         return annotations;
     }
 
@@ -92,6 +94,14 @@ public class GpolloProcessor extends AbstractProcessor {
                 throw new RuntimeException("@SubscribeOn must be used with @Receive");
             }
             descriptor.subscribeOn = MoreElements.asExecutable(annotatedElement).getAnnotation(SubscribeOn.class).value();
+        }
+        // 遍历所有被注解了@Backpressure的元素
+        for (Element annotatedElement : roundEnvironment.getElementsAnnotatedWith(Backpressure.class)) {
+            GpolloDescriptor descriptor = mDescriptorMap.get(annotatedElement);
+            if (descriptor == null) {
+                throw new RuntimeException("@SubscribeOn must be used with @Receive");
+            }
+            descriptor.backpressure = MoreElements.asExecutable(annotatedElement).getAnnotation(Backpressure.class).value();
         }
         //解析，并生成代码
         CodeGenerator.create(new ArrayList<>(mDescriptorMap.values()), processingEnv.getFiler(), mModuleName).createJavaFile();

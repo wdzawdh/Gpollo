@@ -1,5 +1,6 @@
 package com.halfish.processor;
 
+import com.halfish.core.annotations.entity.BackpressureMode;
 import com.halfish.core.annotations.entity.ThreadMode;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ class GpolloDescriptor {
     boolean canReceiveNull = false;
     ThreadMode observeOn = ThreadMode.MAIN;
     ThreadMode subscribeOn = ThreadMode.MAIN;
+    BackpressureMode backpressure = BackpressureMode.NORMAL;
     ExecutableElement methodElement;
 
     GpolloDescriptor(ExecutableElement element) {
