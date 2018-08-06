@@ -22,7 +22,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
-import rx.functions.Action1;
+import rx.Observer;
 
 /**
  * @author cw
@@ -150,8 +150,15 @@ class CodeGenerator {
         BackpressureMode backpressure = gpolloDescriptors.backpressure;
         String methodName = gpolloDescriptors.methodElement.getSimpleName().toString();
         String clazzType = gpolloDescriptors.methodElement.getEnclosingElement().asType().toString().replaceAll("<.*>", "");
-        builder.beginControlFlow("if (" + clazzType + ".class.isAssignableFrom(" + GENERATE_PARAM + ".getClass()))")
-                .addStatement(GPOLLO_BINDER_NAME + ".add($T.toObservable(new String[]{" + GpollpUtil.split(gpolloDescriptors.tags, ",") + "}, $T.class)" + getBackpressureMethodCode(backpressure) + getSubscribeOnMethodCode(subscribeOn) + getObserveOnMethodCode(observeOn) + ".subscribe(new $T<$T>() {" + getOnAction1MethodCode(typeMirror, clazzType, methodName, canReceiveNull) + "}))", Gpollo.class, Object.class, Action1.class, Object.class)
+        builder.beginControlFlow("if ("
+                + clazzType + ".class.isAssignableFrom(" + GENERATE_PARAM + ".getClass()))")
+                .addStatement(GPOLLO_BINDER_NAME
+                        + ".add($T.toObservable(new String[]{"
+                        + GpollpUtil.split(gpolloDescriptors.tags, ",")
+                        + "}, $T.class)" + getBackpressureMethodCode(backpressure)
+                        + getSubscribeOnMethodCode(subscribeOn)
+                        + getObserveOnMethodCode(observeOn)
+                        + getSubscribeWithCode(typeMirror, clazzType, methodName, canReceiveNull) + ")", Gpollo.class, Object.class)
                 .endControlFlow();
     }
 
@@ -183,14 +190,50 @@ class CodeGenerator {
     }
 
     /**
-     * public void call(java.util.ArrayList callParam) {...}
+     * .subscribe(new Observer<Object>(){
+     * });
      */
-    private MethodSpec getOnAction1MethodCode(TypeMirror typeMirror, String clazzType, String methodName, boolean canReceiveNull) {
-        return MethodSpec.methodBuilder("call")
+    private CodeBlock getSubscribeWithCode(TypeMirror typeMirror, String clazzType, String methodName, boolean canReceiveNull) {
+        return CodeBlock.builder().add(".subscribe(new $T<Object>(){"
+                + getOnCompleteMethodCode() + getOnErrorMethodCode()
+                + getOnNextMethodCode(typeMirror, clazzType, methodName, canReceiveNull) + "})", Observer.class)
+                .build();
+    }
+
+    /**
+     * public void onCompleted(Object o) {
+     * }
+     */
+    private MethodSpec getOnCompleteMethodCode() {
+        return MethodSpec.methodBuilder("onCompleted")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addCode(getCallMethodCode(typeMirror, clazzType, methodName, canReceiveNull))
+                .build();
+    }
+
+    /**
+     * public void onError(java.lang.Throwable t) {
+     * }
+     */
+    private MethodSpec getOnErrorMethodCode() {
+        return MethodSpec.methodBuilder("onError")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(Throwable.class, "t")
+                .addCode("t.printStackTrace();")
+                .build();
+    }
+
+    /**
+     * public void onNext(Object callParam) {
+     * }
+     */
+    private MethodSpec getOnNextMethodCode(TypeMirror typeMirror, String clazzType, String methodName, boolean canReceiveNull) {
+        return MethodSpec.methodBuilder("onNext")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
                 .addParameter(Object.class, ACTION1_CALL_PARAM)
+                .addCode(getCallMethodCode(typeMirror, clazzType, methodName, canReceiveNull))
                 .build();
     }
 
