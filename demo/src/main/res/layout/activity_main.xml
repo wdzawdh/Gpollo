@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context="com.halfish.gpollo.MainActivity">
+    tools:context="com.cw.gpollo.MainActivity">
 
     <Button
         android:id="@+id/btAct2"
